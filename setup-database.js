@@ -1,38 +1,19 @@
-// Setup script to load slice data into SQLite database
-const sqlite3 = require('sqlite3').verbose();
+// Setup script to load slice data into database
+const Database = require('./database');
 const fs = require('fs');
 
-const db = new sqlite3.Database('validation.db');
+const db = new Database();
 
 // Initialize database tables first
-db.serialize(() => {
-  // Create tables if they don't exist
-  db.run(`CREATE TABLE IF NOT EXISTS slices (
-    id TEXT PRIMARY KEY,
-    conversation_id TEXT,
-    context TEXT,
-    focus_turns TEXT,
-    hybrid_predictions TEXT
-  )`);
-
-  db.run(`CREATE TABLE IF NOT EXISTS assignments (
-    participant_id TEXT,
-    slice_id TEXT,
-    assigned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (participant_id, slice_id)
-  )`);
-
-  db.run(`CREATE TABLE IF NOT EXISTS annotations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    participant_id TEXT,
-    slice_id TEXT,
-    interaction_types TEXT,
-    curiosity_types TEXT,
-    routing_validation TEXT,
-    annotation_time_seconds INTEGER,
-    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
-});
+async function initializeDatabase() {
+  try {
+    await db.initialize();
+    console.log('Database tables initialized');
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    throw error;
+  }
+}
 
 // Load your slice data from JSON file
 function loadSlicesFromFile() {
@@ -127,26 +108,44 @@ function loadSlicesFromFile() {
 
 // Create sample slices if no data files exist
 function createSampleSlices() {
+  console.log('Creating 40 sample slices for validation...');
+  
   const sampleSlices = [];
   
-  for (let i = 1; i <= 36; i++) {
+  for (let i = 1; i <= 40; i++) {
     sampleSlices.push({
-      id: `slice_${i.toString().padStart(2, '0')}`,
-      conversation_id: `conv_${Math.floor(i/3) + 1}`,
-      context: i === 1 ? "None (start of recorded conversation)" : `Context for slice ${i}...`,
-      text: `Sample conversation text for slice ${i}.\n\nSpeaker A: This is sample text for testing.\n\nSpeaker B: This is a response that shows different interaction patterns.`,
+      id: i,
+      conversation_id: `sample_conversation_${Math.ceil(i/3)}`,
+      context: `Context for slice ${i}...`,
+      focus_turn: {
+        speaker: i % 2 === 0 ? "A" : "B",
+        text: `Sample turn from speaker ${i % 2 === 0 ? "A" : "B"} in slice ${i}`,
+        turn: i
+      },
       focus_turns: [
         {
-          speaker: "A",
-          text: `Sample turn from speaker A in slice ${i}`
+          speaker: i % 2 === 0 ? "A" : "B", 
+          text: `Sample turn from speaker ${i % 2 === 0 ? "A" : "B"} in slice ${i}`,
+          turn: i
         },
         {
-          speaker: "B", 
-          text: `Sample response from speaker B in slice ${i}`
+          speaker: i % 2 === 0 ? "B" : "A",
+          text: `Sample response from speaker ${i % 2 === 0 ? "B" : "A"} in slice ${i}`,
+          turn: i + 1
         }
+      ],
+      interaction_types: [
+        i % 3 === 0 ? "agreeing" : i % 3 === 1 ? "disagreeing" : "explaining"
       ],
       hybrid_predictions: {
         interaction_types: [
+          {
+            type: i % 3 === 0 ? "agreeing" : i % 3 === 1 ? "disagreeing" : "explaining",
+            confidence: 0.7 + Math.random() * 0.3,
+            source: "pattern"
+          }
+        ],
+        curiosity_types: [
           {
             type: "questioning",
             confidence: 0.7 + Math.random() * 0.3,
@@ -162,85 +161,72 @@ function createSampleSlices() {
 }
 
 // Insert slices into database
-function insertSlices(slices) {
-  return new Promise((resolve, reject) => {
-    db.serialize(() => {
-      // Clear existing data
-      db.run('DELETE FROM annotations');
-      db.run('DELETE FROM assignments'); 
-      db.run('DELETE FROM slices');
+async function insertSlices(slices) {
+  try {
+    // Clear existing data
+    await db.run('DELETE FROM annotations');
+    await db.run('DELETE FROM assignments'); 
+    await db.run('DELETE FROM slices');
 
-      // Insert new slices
-      const stmt = db.prepare(`
+    console.log('Inserting slices into database...');
+
+    // Insert new slices
+    for (let i = 0; i < slices.length; i++) {
+      const slice = slices[i];
+      
+      // Ensure unique slice IDs by using validation prefix
+      const sliceId = `validation_${slice.id || (i + 1).toString().padStart(2, '0')}`;
+      const conversationId = slice.conversation_id || `conv_${Math.floor(i/3) + 1}`;
+      
+      // Handle context - validation slices may have null context
+      let context = slice.context;
+      if (!context && slice.text) {
+        context = slice.text;
+      }
+      if (context === "None (start of recorded conversation)") {
+        context = null;
+      }
+      
+      // Handle focus_turns - new format has single focus_turn, old format has array
+      let focusTurns;
+      if (slice.focus_turn) {
+        // New 1-turn format
+        focusTurns = [slice.focus_turn];
+      } else if (slice.focus_turns && Array.isArray(slice.focus_turns)) {
+        // Old 3-turn format
+        focusTurns = slice.focus_turns;
+      } else if (slice.turns && Array.isArray(slice.turns)) {
+        // Another old format
+        focusTurns = slice.turns;
+      } else {
+        // Text format - parse it
+        focusTurns = parseTextIntoTurns(slice.text || '');
+      }
+      
+      // Handle hybrid predictions
+      let hybridPredictions = slice.hybrid_predictions || {};
+      if (slice.model_predictions) {
+        hybridPredictions = slice.model_predictions;
+      }
+      
+      await db.run(`
         INSERT INTO slices (id, conversation_id, context, focus_turns, hybrid_predictions)
         VALUES (?, ?, ?, ?, ?)
-      `);
+      `, [
+        sliceId,
+        conversationId,
+        context,
+        JSON.stringify(focusTurns),
+        JSON.stringify(hybridPredictions)
+      ]);
+    }
 
-      slices.forEach((slice, index) => {
-        // Ensure unique slice IDs by using validation prefix
-        const sliceId = `validation_${slice.id || (index + 1).toString().padStart(2, '0')}`;
-        const conversationId = slice.conversation_id || `conv_${Math.floor(index/3) + 1}`;
-        
-        // Handle context - validation slices may have null context
-        let context = slice.context;
-        if (!context && slice.text) {
-          context = slice.text;
-        }
-        if (context === "None (start of recorded conversation)") {
-          context = null;
-        }
-        
-        // Handle focus_turns - new format has single focus_turn, old format has array
-        let focusTurns;
-        if (slice.focus_turn) {
-          // New 1-turn format
-          focusTurns = [slice.focus_turn];
-        } else if (slice.focus_turns && Array.isArray(slice.focus_turns)) {
-          // Old 3-turn format
-          focusTurns = slice.focus_turns;
-        } else if (slice.text) {
-          // Parse text into turns for older format
-          focusTurns = parseTextIntoTurns(slice.text);
-        } else {
-          focusTurns = [];
-        }
-
-        // Handle hybrid predictions or interaction types - support both formats
-        let hybridPredictions = slice.hybrid_predictions || {};
-        
-        // Convert new format (interaction_types array) to hybrid predictions format for database
-        if (slice.interaction_types && Array.isArray(slice.interaction_types)) {
-          hybridPredictions = {
-            interaction_types: slice.interaction_types.map(type => ({
-              type: type,
-              confidence: 0.8, // Default confidence for curated slices
-              source: 'curated'
-            })),
-            curiosity_types: [],
-            routing_reason: 'curated_conversation',
-            llm_routed: false,
-            pattern_confidence: 0.8
-          };
-        }
-
-        stmt.run(
-          sliceId,
-          conversationId,
-          context || '',
-          JSON.stringify(focusTurns),
-          JSON.stringify(hybridPredictions)
-        );
-      });
-
-      stmt.finalize((err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(slices.length);
-        }
-      });
-    });
-  });
+    console.log(`Inserted ${slices.length} slices into database`);
+    return slices.length;
+  } catch (error) {
+    console.error('Error inserting slices:', error);
+    throw error;
+  }
 }
 
 // Helper function to parse text format into structured turns
@@ -268,6 +254,8 @@ async function setupDatabase() {
   try {
     console.log('Setting up validation database...');
     
+    await initializeDatabase();
+    
     const slices = loadSlicesFromFile();
     console.log(`Loaded ${slices.length} slices`);
     
@@ -275,19 +263,14 @@ async function setupDatabase() {
     console.log(`Inserted ${insertedCount} slices into database`);
     
     // Verify setup
-    db.get('SELECT COUNT(*) as count FROM slices', (err, row) => {
-      if (err) {
-        console.error('Error verifying setup:', err);
-      } else {
-        console.log(`Database setup complete. Total slices: ${row.count}`);
-      }
-      
-      db.close();
-    });
+    const result = await db.get('SELECT COUNT(*) as count FROM slices');
+    console.log(`Database now contains ${result.count} slices`);
+    
+    console.log('Database setup complete!');
     
   } catch (error) {
     console.error('Setup failed:', error);
-    db.close();
+    process.exit(1);
   }
 }
 

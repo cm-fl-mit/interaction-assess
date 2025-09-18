@@ -44,13 +44,13 @@ async function getSliceCounts() {
 }
 
 // Get all slice IDs
-function getAllSliceIds() {
-  return new Promise((resolve, reject) => {
-    db.all('SELECT id FROM slices', (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows.map(row => row.id));
-    });
-  });
+async function getAllSliceIds() {
+  try {
+    const rows = await db.query('SELECT id FROM slices');
+    return rows.map(row => row.id);
+  } catch (error) {
+    throw error;
+  }
 }
 
 // Shuffle array function
@@ -72,84 +72,80 @@ app.get('/api/participant/:id/slices', async (req, res) => {
 
   try {
     // Check if participant already has assignments
-    db.all(
+    const existing = await db.query(
       'SELECT slice_id FROM assignments WHERE participant_id = ?',
-      [participantId],
-      async (err, existing) => {
-        if (err) {
-          return res.status(500).json({ error: 'Database error' });
+      [participantId]
+    );
+
+    let assignedSliceIds;
+
+    if (existing.length > 0) {
+      // Return existing assignments
+      assignedSliceIds = existing.map(row => row.slice_id);
+    } else {
+      // Create new assignments using load balancing
+      const allSliceIds = await getAllSliceIds();
+      const sliceCounts = await getSliceCounts();
+
+      // Initialize counts for slices that haven't been assigned yet
+      allSliceIds.forEach(id => {
+        if (!(id in sliceCounts)) {
+          sliceCounts[id] = 0;
         }
+      });
 
-        let assignedSliceIds;
-
-        if (existing.length > 0) {
-          // Return existing assignments
-          assignedSliceIds = existing.map(row => row.slice_id);
-        } else {
-          // Create new assignments using load balancing
-          const allSliceIds = await getAllSliceIds();
-          const sliceCounts = await getSliceCounts();
-
-          // Initialize counts for slices that haven't been assigned yet
-          allSliceIds.forEach(id => {
-            if (!(id in sliceCounts)) {
-              sliceCounts[id] = 0;
-            }
-          });
-
-          // Sort by least assigned first
-          const sortedSlices = Object.keys(sliceCounts)
-            .sort((a, b) => sliceCounts[a] - sliceCounts[b]);
-
-          // Take first N slices and randomize order
-          assignedSliceIds = shuffleArray(
-            sortedSlices.slice(0, SLICES_PER_PARTICIPANT)
-          );
-
-          // Store assignments in database
-          const stmt = db.prepare('INSERT INTO assignments (participant_id, slice_id) VALUES (?, ?)');
-          assignedSliceIds.forEach(sliceId => {
-            stmt.run(participantId, sliceId);
-          });
-          stmt.finalize();
+      // Sort slices by count (least assigned first), then shuffle within equal counts
+      const sortedSlices = allSliceIds.sort((a, b) => {
+        const countDiff = sliceCounts[a] - sliceCounts[b];
+        if (countDiff === 0) {
+          // Equal counts - randomize order
+          return Math.random() - 0.5;
         }
+        return countDiff;
+      });
 
-        // Get slice data for assigned slices
-        const placeholders = assignedSliceIds.map(() => '?').join(',');
-        db.all(
-          `SELECT * FROM slices WHERE id IN (${placeholders})`,
-          assignedSliceIds,
-          (err, sliceRows) => {
-            if (err) {
-              return res.status(500).json({ error: 'Error fetching slices' });
-            }
+      // Take the first SLICES_PER_PARTICIPANT slices (least assigned)
+      assignedSliceIds = sortedSlices.slice(0, SLICES_PER_PARTICIPANT);
 
-            // Parse JSON fields and maintain order
-            const slicesData = assignedSliceIds.map(id => {
-              const slice = sliceRows.find(s => s.id === id);
-              return {
-                ...slice,
-                focus_turns: JSON.parse(slice.focus_turns || '[]'),
-                hybrid_predictions: JSON.parse(slice.hybrid_predictions || '{}')
-              };
-            });
-
-            res.json({
-              participant_id: participantId,
-              slices: slicesData,
-              total: slicesData.length
-            });
-          }
+      // Insert assignments
+      for (const sliceId of assignedSliceIds) {
+        await db.run(
+          'INSERT INTO assignments (participant_id, slice_id) VALUES (?, ?)',
+          [participantId, sliceId]
         );
       }
+    }
+
+    // Fetch slice details
+    const placeholders = assignedSliceIds.map(() => '?').join(',');
+    const sliceRows = await db.query(
+      `SELECT * FROM slices WHERE id IN (${placeholders})`,
+      assignedSliceIds
     );
+
+    // Parse JSON fields and maintain order
+    const slicesData = assignedSliceIds.map(id => {
+      const slice = sliceRows.find(s => s.id === id);
+      return {
+        ...slice,
+        focus_turns: JSON.parse(slice.focus_turns || '[]'),
+        hybrid_predictions: JSON.parse(slice.hybrid_predictions || '{}')
+      };
+    });
+
+    res.json({
+      participant_id: participantId,
+      slices: slicesData,
+      total: slicesData.length
+    });
   } catch (error) {
+    console.error('Error in /api/participant/:id/slices:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 // 2. Submit annotation
-app.post('/api/annotations', (req, res) => {
+app.post('/api/annotations', async (req, res) => {
   const {
     participant_id,
     slice_id,
@@ -164,100 +160,93 @@ app.post('/api/annotations', (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  // Insert annotation
-  db.run(`
-    INSERT INTO annotations 
-    (participant_id, slice_id, interaction_types, curiosity_types, routing_validation, annotation_time_seconds)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `, [
-    participant_id,
-    slice_id,
-    JSON.stringify(interaction_types),
-    JSON.stringify(curiosity_types || {}),
-    JSON.stringify(routing_validation || {}),
-    annotation_time_seconds || null
-  ], function(err) {
-    if (err) {
-      console.error('Error inserting annotation:', err);
-      return res.status(500).json({ error: 'Database error' });
-    }
+  try {
+    // Insert annotation
+    await db.run(`
+      INSERT INTO annotations 
+      (participant_id, slice_id, interaction_types, curiosity_types, routing_validation, annotation_time_seconds)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `, [
+      participant_id,
+      slice_id,
+      JSON.stringify(interaction_types),
+      JSON.stringify(curiosity_types || []),
+      JSON.stringify(routing_validation || {}),
+      annotation_time_seconds || 0
+    ]);
 
     res.json({
-      id: this.lastID,
-      status: 'success',
-      message: 'Annotation saved'
+      success: true,
+      message: 'Annotation saved successfully'
     });
-  });
+  } catch (error) {
+    console.error('Error saving annotation:', error);
+    res.status(500).json({ error: 'Failed to save annotation' });
+  }
 });
 
-// 3. Export data (simple CSV format)
-app.get('/api/export', (req, res) => {
-  db.all(`
-    SELECT 
-      a.participant_id,
-      a.slice_id,
-      a.interaction_types,
-      a.curiosity_types,
-      a.routing_validation,
-      a.annotation_time_seconds,
-      a.submitted_at,
-      s.conversation_id
-    FROM annotations a
-    JOIN assignments ass ON a.participant_id = ass.participant_id AND a.slice_id = ass.slice_id
-    JOIN slices s ON a.slice_id = s.id
-    ORDER BY a.participant_id, a.submitted_at
-  `, (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: 'Export failed' });
-    }
+// 3. Export data as CSV
+app.get('/api/export', async (req, res) => {
+  try {
+    const rows = await db.query(`
+      SELECT 
+        a.participant_id,
+        a.slice_id,
+        a.interaction_types,
+        a.curiosity_types,
+        a.routing_validation,
+        a.annotation_time_seconds,
+        a.submitted_at,
+        s.conversation_id
+      FROM annotations a
+      JOIN assignments ass ON a.participant_id = ass.participant_id AND a.slice_id = ass.slice_id
+      JOIN slices s ON a.slice_id = s.id
+      ORDER BY a.participant_id, a.submitted_at
+    `);
 
     // Convert to CSV
-    const csvRows = ['participant_id,slice_id,conversation_id,interaction_types,curiosity_types,routing_validation,annotation_time_seconds,submitted_at'];
+    const headers = [
+      'participant_id',
+      'slice_id', 
+      'conversation_id',
+      'interaction_types',
+      'curiosity_types',
+      'routing_validation',
+      'annotation_time_seconds',
+      'submitted_at'
+    ];
+
+    let csv = headers.join(',') + '\n';
     
     rows.forEach(row => {
-      csvRows.push([
+      const csvRow = [
         row.participant_id,
         row.slice_id,
         row.conversation_id,
         `"${row.interaction_types}"`,
         `"${row.curiosity_types}"`,
         `"${row.routing_validation}"`,
-        row.annotation_time_seconds || '',
+        row.annotation_time_seconds,
         row.submitted_at
-      ].join(','));
+      ];
+      csv += csvRow.join(',') + '\n';
     });
 
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename=annotations.csv');
-    res.send(csvRows.join('\n'));
-  });
+    res.setHeader('Content-Disposition', 'attachment; filename="validation_data.csv"');
+    res.send(csv);
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json({ error: 'Export failed' });
+  }
 });
 
-// Health check
+// 4. Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-// Serve main page
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Access the application at http://localhost:${PORT}`);
-});
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('Shutting down server...');
-  db.close((err) => {
-    if (err) {
-      console.error('Error closing database:', err);
-    } else {
-      console.log('Database connection closed.');
-    }
-    process.exit(0);
-  });
+  console.log(`Validation server running on port ${PORT}`);
 });
