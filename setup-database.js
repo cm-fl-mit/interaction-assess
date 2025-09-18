@@ -253,6 +253,7 @@ function parseTextIntoTurns(text) {
 async function setupDatabase() {
   try {
     console.log('Setting up validation database...');
+    console.log('Database type:', db.type);
     
     await initializeDatabase();
     
@@ -270,7 +271,15 @@ async function setupDatabase() {
     
   } catch (error) {
     console.error('Setup failed:', error);
-    process.exit(1);
+    console.error('Error details:', error.message);
+    console.error('Stack trace:', error.stack);
+    
+    // Don't exit on error in production - let the app start and show the error
+    if (process.env.NODE_ENV === 'production') {
+      console.error('Continuing despite setup error in production...');
+    } else {
+      process.exit(1);
+    }
   }
 }
 

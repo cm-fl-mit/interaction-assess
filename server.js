@@ -19,9 +19,12 @@ const db = new Database();
 // Initialize database tables
 (async () => {
   try {
+    console.log('Starting database initialization...');
     await db.initialize();
+    console.log('Database initialization completed successfully');
   } catch (error) {
     console.error('Database initialization error:', error);
+    console.error('Stack trace:', error.stack);
   }
 })();
 
@@ -71,11 +74,15 @@ app.get('/api/participant/:id/slices', async (req, res) => {
   const SLICES_PER_PARTICIPANT = 15;
 
   try {
+    console.log(`Loading slices for participant: ${participantId}`);
+    
     // Check if participant already has assignments
     const existing = await db.query(
       'SELECT slice_id FROM assignments WHERE participant_id = ?',
       [participantId]
     );
+    
+    console.log(`Found ${existing.length} existing assignments for participant ${participantId}`);
 
     let assignedSliceIds;
 

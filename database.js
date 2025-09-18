@@ -7,13 +7,19 @@ class Database {
     if (process.env.DATABASE_URL) {
       // Use PostgreSQL for production
       this.type = 'postgres';
+      
+      // Parse DATABASE_URL to add SSL parameters
+      const connectionString = process.env.DATABASE_URL + '?sslmode=require';
+      
       this.db = new Pool({
-        connectionString: process.env.DATABASE_URL,
+        connectionString: connectionString,
         ssl: {
-          rejectUnauthorized: false
+          rejectUnauthorized: false,
+          requestCert: false,
+          agent: false
         }
       });
-      console.log('Using PostgreSQL database');
+      console.log('Using PostgreSQL database with SSL disabled');
     } else {
       // Use SQLite for local development
       this.type = 'sqlite';
