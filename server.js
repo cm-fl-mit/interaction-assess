@@ -164,6 +164,8 @@ app.get('/api/participant/:id/slices', async (req, res) => {
 
 // 2. Submit annotation
 app.post('/api/annotations', async (req, res) => {
+  console.log('Received annotation submission:', req.body);
+  
   const {
     participant_id,
     slice_id,
@@ -175,8 +177,11 @@ app.post('/api/annotations', async (req, res) => {
 
   // Validate required fields
   if (!participant_id || !slice_id || !interaction_types) {
+    console.log('Missing required fields:', { participant_id, slice_id, interaction_types });
     return res.status(400).json({ error: 'Missing required fields' });
   }
+  
+  console.log('Validated fields, attempting to save annotation...');
 
   try {
     // Insert annotation
@@ -193,12 +198,14 @@ app.post('/api/annotations', async (req, res) => {
       annotation_time_seconds || 0
     ]);
 
+    console.log('Annotation saved successfully to database');
     res.json({
       success: true,
       message: 'Annotation saved successfully'
     });
   } catch (error) {
     console.error('Error saving annotation:', error);
+    console.error('Error details:', error.message);
     res.status(500).json({ error: 'Failed to save annotation' });
   }
 });
