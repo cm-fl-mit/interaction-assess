@@ -9,7 +9,9 @@ class Database {
       this.type = 'postgres';
       this.db = new Pool({
         connectionString: process.env.DATABASE_URL,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+        ssl: {
+          rejectUnauthorized: false
+        }
       });
       console.log('Using PostgreSQL database');
     } else {
@@ -23,7 +25,12 @@ class Database {
   // Execute a query
   async query(sql, params = []) {
     if (this.type === 'postgres') {
-      const result = await this.db.query(sql, params);
+      // Convert ? placeholders to $1, $2, etc. for PostgreSQL
+      let pgSql = sql;
+      let paramIndex = 1;
+      pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+      
+      const result = await this.db.query(pgSql, params);
       return result.rows;
     } else {
       return new Promise((resolve, reject) => {
@@ -38,7 +45,12 @@ class Database {
   // Execute a single row query
   async get(sql, params = []) {
     if (this.type === 'postgres') {
-      const result = await this.db.query(sql, params);
+      // Convert ? placeholders to $1, $2, etc. for PostgreSQL
+      let pgSql = sql;
+      let paramIndex = 1;
+      pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+      
+      const result = await this.db.query(pgSql, params);
       return result.rows[0];
     } else {
       return new Promise((resolve, reject) => {
@@ -53,7 +65,12 @@ class Database {
   // Execute an insert/update/delete
   async run(sql, params = []) {
     if (this.type === 'postgres') {
-      const result = await this.db.query(sql, params);
+      // Convert ? placeholders to $1, $2, etc. for PostgreSQL
+      let pgSql = sql;
+      let paramIndex = 1;
+      pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+      
+      const result = await this.db.query(pgSql, params);
       return { changes: result.rowCount, lastID: result.insertId };
     } else {
       return new Promise((resolve, reject) => {
