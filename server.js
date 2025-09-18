@@ -218,6 +218,20 @@ app.post('/api/annotations', async (req, res) => {
 // 3. Export data as CSV
 app.get('/api/export', async (req, res) => {
   try {
+    console.log('Export endpoint called');
+    
+    // First check if we have any annotations at all
+    const annotationCount = await db.get('SELECT COUNT(*) as count FROM annotations');
+    console.log(`Total annotations in database: ${annotationCount.count}`);
+    
+    // Check if we have any slices
+    const sliceCount = await db.get('SELECT COUNT(*) as count FROM slices');
+    console.log(`Total slices in database: ${sliceCount.count}`);
+    
+    // Check if we have any assignments
+    const assignmentCount = await db.get('SELECT COUNT(*) as count FROM assignments');
+    console.log(`Total assignments in database: ${assignmentCount.count}`);
+    
     const rows = await db.query(`
       SELECT 
         a.participant_id,
@@ -233,6 +247,8 @@ app.get('/api/export', async (req, res) => {
       JOIN slices s ON a.slice_id = s.id
       ORDER BY a.participant_id, a.submitted_at
     `);
+    
+    console.log(`Export query returned ${rows.length} rows`);
 
     // Convert to CSV
     const headers = [
