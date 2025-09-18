@@ -13,8 +13,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// Database setup
-const db = new sqlite3.Database('validation.db');
+// Database setup - use persistent volume if available, otherwise local
+const dbPath = process.env.NODE_ENV === 'production' ? '/data/validation.db' : 'validation.db';
+const db = new sqlite3.Database(dbPath);
 
 // Initialize database tables
 db.serialize(() => {
