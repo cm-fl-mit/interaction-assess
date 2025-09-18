@@ -16,12 +16,23 @@ app.use(express.static('public'));
 // Database setup
 const db = new Database();
 
-// Initialize database tables
+// Initialize database tables and load data
 (async () => {
   try {
     console.log('Starting database initialization...');
     await db.initialize();
     console.log('Database initialization completed successfully');
+    
+    // Check if we need to load slice data
+    const result = await db.get('SELECT COUNT(*) as count FROM slices');
+    console.log(`Database currently contains ${result.count} slices`);
+    
+    if (result.count === 0) {
+      console.log('No slices found, running database setup...');
+      const { setupDatabase } = require('./setup-database');
+      await setupDatabase();
+      console.log('Database setup completed during startup');
+    }
   } catch (error) {
     console.error('Database initialization error:', error);
     console.error('Stack trace:', error.stack);
@@ -251,6 +262,28 @@ app.get('/api/export', async (req, res) => {
 // 4. Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
+// 5. Manual setup trigger (for debugging)
+app.get('/api/setup', async (req, res) => {
+  try {
+    const { setupDatabase } = require('./setup-database');
+    await setupDatabase();
+    res.json({ success: true, message: 'Database setup completed' });
+  } catch (error) {
+    console.error('Manual setup failed:', error);
+    res.status(500).json({ error: 'Setup failed', details: error.message });
+  }
+});
+
+// 6. Check slice count (for debugging)
+app.get('/api/debug/slices', async (req, res) => {
+  try {
+    const result = await db.get('SELECT COUNT(*) as count FROM slices');
+    res.json({ slice_count: result.count });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Start server
