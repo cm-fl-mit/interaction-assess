@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "node server.js",
     "setup": "node setup-database.js",
-    "export": "node export-data.js"
+    "export": "node export-data.js",
+    "postinstall": "npm run setup"
   },
   "dependencies": {
     "express": "^4.18.0",
