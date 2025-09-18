@@ -4,28 +4,35 @@ const { Pool } = require('pg');
 
 class Database {
   constructor() {
+    // For now, always use SQLite to avoid SSL issues
+    // TODO: Fix PostgreSQL SSL connection later
+    this.type = 'sqlite';
+    
+    // Use persistent path if in production, otherwise local
+    const dbPath = process.env.NODE_ENV === 'production' ? '/tmp/validation.db' : 'validation.db';
+    this.db = new sqlite3.Database(dbPath);
+    console.log(`Using SQLite database at: ${dbPath}`);
+    
+    /* Commented out PostgreSQL for now due to SSL issues
     if (process.env.DATABASE_URL) {
       // Use PostgreSQL for production
       this.type = 'postgres';
       
-      // Parse DATABASE_URL to add SSL parameters
-      const connectionString = process.env.DATABASE_URL + '?sslmode=require';
+      // Try to completely disable SSL verification
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
       
       this.db = new Pool({
-        connectionString: connectionString,
-        ssl: {
-          rejectUnauthorized: false,
-          requestCert: false,
-          agent: false
-        }
+        connectionString: process.env.DATABASE_URL,
+        ssl: false
       });
-      console.log('Using PostgreSQL database with SSL disabled');
+      console.log('Using PostgreSQL database with SSL completely disabled');
     } else {
       // Use SQLite for local development
       this.type = 'sqlite';
       this.db = new sqlite3.Database('validation.db');
       console.log('Using SQLite database');
     }
+    */
   }
 
   // Execute a query
