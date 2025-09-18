@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const Database = require('./database');
+const GoogleSheetsService = require('./google-sheets');
 const path = require('path');
 
 const app = express();
@@ -13,8 +14,11 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// Database setup
+// Database setup (for slice loading and assignments)
 const db = new Database();
+
+// Google Sheets setup (for annotation saving)
+const sheetsService = new GoogleSheetsService();
 
 // Initialize database tables and load data
 (async () => {
@@ -189,24 +193,47 @@ app.post('/api/annotations', async (req, res) => {
   console.log('Validated fields, attempting to save annotation...');
 
   try {
-    // Insert annotation
-    await db.run(`
-      INSERT INTO annotations 
-      (participant_id, slice_id, interaction_types, curiosity_types, routing_validation, annotation_time_seconds)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `, [
+    const annotation = {
       participant_id,
       slice_id,
-      JSON.stringify(interaction_types),
-      JSON.stringify(curiosity_types || []),
-      JSON.stringify(routing_validation || {}),
-      annotation_time_seconds || 0
-    ]);
+      interaction_types,
+      curiosity_types: curiosity_types || [],
+      routing_validation: routing_validation || {},
+      annotation_time_seconds: annotation_time_seconds || 0
+    };
 
-    console.log('Annotation saved successfully to database');
+    // Try to save to Google Sheets first
+    const sheetsSaved = await sheetsService.saveAnnotation(annotation);
+    
+    // Also save to local database as backup
+    try {
+      await db.run(`
+        INSERT INTO annotations 
+        (participant_id, slice_id, interaction_types, curiosity_types, routing_validation, annotation_time_seconds)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `, [
+        participant_id,
+        slice_id,
+        JSON.stringify(interaction_types),
+        JSON.stringify(curiosity_types || []),
+        JSON.stringify(routing_validation || {}),
+        annotation_time_seconds || 0
+      ]);
+      console.log('Annotation saved to local database as backup');
+    } catch (dbError) {
+      console.error('Database backup failed:', dbError.message);
+    }
+
+    if (sheetsSaved) {
+      console.log('Annotation saved successfully to Google Sheets');
+    } else {
+      console.log('Google Sheets save failed, but local backup saved');
+    }
+    
     res.json({
       success: true,
-      message: 'Annotation saved successfully'
+      message: 'Annotation saved successfully',
+      saved_to_sheets: sheetsSaved
     });
   } catch (error) {
     console.error('Error saving annotation:', error);
@@ -301,6 +328,21 @@ app.get('/api/setup', async (req, res) => {
   } catch (error) {
     console.error('Manual setup failed:', error);
     res.status(500).json({ error: 'Setup failed', details: error.message });
+  }
+});
+
+// 7. Setup Google Sheets headers
+app.get('/api/setup-sheets', async (req, res) => {
+  try {
+    const success = await sheetsService.setupHeaders();
+    if (success) {
+      res.json({ success: true, message: 'Google Sheets headers set up successfully' });
+    } else {
+      res.json({ success: false, message: 'Google Sheets not configured or failed to set up headers' });
+    }
+  } catch (error) {
+    console.error('Sheets setup failed:', error);
+    res.status(500).json({ error: 'Sheets setup failed', details: error.message });
   }
 });
 

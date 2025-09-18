@@ -15,7 +15,8 @@
     "cors": "^2.8.5",
     "sqlite3": "^5.1.6",
     "pg": "^8.11.0",
-    "body-parser": "^1.20.0"
+    "body-parser": "^1.20.0",
+    "googleapis": "^128.0.0"
   },
   "keywords": ["validation", "annotation", "prolific"],
   "author": "MoSAIC Research",
