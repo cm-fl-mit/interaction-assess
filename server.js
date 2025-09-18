@@ -2,7 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('./database');
 const path = require('path');
 
 const app = express();
@@ -13,60 +13,34 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// Database setup - use persistent volume if available, otherwise local
-const dbPath = process.env.NODE_ENV === 'production' ? '/data/validation.db' : 'validation.db';
-const db = new sqlite3.Database(dbPath);
+// Database setup
+const db = new Database();
 
 // Initialize database tables
-db.serialize(() => {
-  // Slices table
-  db.run(`CREATE TABLE IF NOT EXISTS slices (
-    id TEXT PRIMARY KEY,
-    conversation_id TEXT,
-    context TEXT,
-    focus_turns TEXT,
-    hybrid_predictions TEXT
-  )`);
-
-  // Assignments table - tracks which slices are assigned to which participants
-  db.run(`CREATE TABLE IF NOT EXISTS assignments (
-    participant_id TEXT,
-    slice_id TEXT,
-    assigned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (participant_id, slice_id)
-  )`);
-
-  // Annotations table - stores participant responses
-  db.run(`CREATE TABLE IF NOT EXISTS annotations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    participant_id TEXT,
-    slice_id TEXT,
-    interaction_types TEXT,
-    curiosity_types TEXT,
-    routing_validation TEXT,
-    annotation_time_seconds INTEGER,
-    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
-});
+(async () => {
+  try {
+    await db.initialize();
+  } catch (error) {
+    console.error('Database initialization error:', error);
+  }
+})();
 
 // Load balancing: Get assignment counts for each slice
-function getSliceCounts() {
-  return new Promise((resolve, reject) => {
-    db.all(`
+async function getSliceCounts() {
+  try {
+    const rows = await db.query(`
       SELECT slice_id, COUNT(*) as count 
       FROM assignments 
       GROUP BY slice_id
-    `, (err, rows) => {
-      if (err) reject(err);
-      else {
-        const counts = {};
-        rows.forEach(row => {
-          counts[row.slice_id] = row.count;
-        });
-        resolve(counts);
-      }
+    `);
+    const counts = {};
+    rows.forEach(row => {
+      counts[row.slice_id] = row.count;
     });
-  });
+    return counts;
+  } catch (error) {
+    throw error;
+  }
 }
 
 // Get all slice IDs
