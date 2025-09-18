@@ -892,6 +892,7 @@
 
         // Submit annotation and move to next slice
         async function submitAndNext() {
+            console.log('submitAndNext called');
             const annotationTime = Math.floor((Date.now() - startTime) / 1000);
             
             // Convert categorical confidence to numeric for storage
@@ -939,13 +940,18 @@
                 annotation_time_seconds: annotationTime
             };
 
+            console.log('About to submit annotation:', annotation);
+            
             try {
                 // Submit to server
+                console.log('Sending fetch request to /api/annotations');
                 const response = await fetch('/api/annotations', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(annotation)
                 });
+                
+                console.log('Fetch response received:', response.status);
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
