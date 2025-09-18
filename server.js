@@ -175,10 +175,15 @@ app.post('/api/annotations', async (req, res) => {
     annotation_time_seconds
   } = req.body;
 
-  // Validate required fields
-  if (!participant_id || !slice_id || !interaction_types) {
+  // Validate required fields - allow empty interaction_types array
+  if (!participant_id || !slice_id || interaction_types === undefined) {
     console.log('Missing required fields:', { participant_id, slice_id, interaction_types });
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
+  // Log if submission is empty (user didn't select anything)
+  if (interaction_types.length === 0 && (!curiosity_types || curiosity_types.length === 0)) {
+    console.log('Empty submission received (no selections made)');
   }
   
   console.log('Validated fields, attempting to save annotation...');

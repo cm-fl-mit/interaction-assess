@@ -8,8 +8,8 @@ class Database {
     // TODO: Fix PostgreSQL SSL connection later
     this.type = 'sqlite';
     
-    // Use persistent path if in production, otherwise local
-    const dbPath = process.env.NODE_ENV === 'production' ? '/tmp/validation.db' : 'validation.db';
+    // Use a more persistent path - /app is the working directory in DigitalOcean
+    const dbPath = process.env.NODE_ENV === 'production' ? './validation.db' : 'validation.db';
     this.db = new sqlite3.Database(dbPath);
     console.log(`Using SQLite database at: ${dbPath}`);
     
