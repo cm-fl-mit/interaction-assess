@@ -1,0 +1,21 @@
+{
+  "name": "validation-platform-simple",
+  "version": "1.0.0",
+  "description": "Lightweight validation platform for 30 participants",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "setup": "node setup-database.js",
+    "export": "node export-data.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "cors": "^2.8.5",
+    "sqlite3": "^5.1.6",
+    "body-parser": "^1.20.0"
+  },
+  "keywords": ["validation", "annotation", "prolific"],
+  "author": "MoSAIC Research",
+  "license": "MIT"
+}

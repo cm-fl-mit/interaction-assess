@@ -1,0 +1,676 @@
+{
+  "metadata": {
+    "total_slices": 35,
+    "conversation_topic": "Crisis Communication System Design",
+    "source": "simulated_undergraduate_conversation",
+    "id_update_timestamp": "2025-09-17T13:38:52.042Z",
+    "previous_id_format": "crisis_comm_turn_XX",
+    "current_id_format": "sequential_integers",
+    "id_mapping_note": "IDs changed from string format to sequential integers 1-N"
+  },
+  "slices": [
+    {
+      "id": 1,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 5,
+      "context": "Sam: Wait, I think you're misunderstanding the requirements. It says \"Must survive if 2 major communication hubs fail.\" I think ANY two hubs, which could include the main one.\n\nMaya: But that's the whole point of having a central hub though. It's efficient. The project says it needs to survive if two major hubs fail, not the main one.",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "But that doesn't make sense from a design perspective. Like you need one primary source of truth for emergency information. You can't just have chaos with multiple competing sources.",
+        "turn": 5
+      },
+      "interaction_types": [
+        "disagreeing",
+        "sustained_disagreement",
+        "explaining"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 2,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 6,
+      "context": "Maya: But that's the whole point of having a central hub though. It's efficient. The project says it needs to survive if two major hubs fail, not the main one.\n\nMaya: But that doesn't make sense from a design perspective. Like you need one primary source of truth for emergency information. You can't just have chaos with multiple competing sources.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "But that's exactly the problem with centralized systems! What if there's a power outage in that building, or the person in charge isn't there, or the system goes down?",
+        "turn": 6
+      },
+      "interaction_types": [
+        "disagreeing",
+        "sustained_disagreement",
+        "diversive_curiosity"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 3,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 7,
+      "context": "Maya: No way. That doesn't make sense from a design perspective. You always need one primary source of truth for emergency information. You can't just have chaos with multiple competing sources.\n\nSam: But that's exactly the problem with centralized systems! What if there's a power outage in that building, or the person in charge isn't there, or the system goes down?",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "Okay, fine, but then how do you coordinate multiple sources without creating confusion? Like what if different hubs send out conflicting information?",
+        "turn": 7
+      },
+      "interaction_types": [
+        "agreeing",
+        "diversive_curiosity",
+        "questioning"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 4,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 10,
+      "context": "Sam: I guess... maybe they don't all send original information? Like there's still one source of truth, but multiple ways to distribute it?\n\nMaya: So like backup broadcast systems? That could work. But then we're back to my original idea of a central hub with redundant connections.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "Not exactly though. What if the connections themselves are the important part, not just having one center? Like, what makes a network actually robust?",
+        "turn": 10
+      },
+      "interaction_types": [
+        "disagreeing",
+        "epistemic_curiosity",
+        "deeper_exploration"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 5,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 12,
+      "context": "Sam: Not exactly though. What if the connections themselves are the important part, not just having one center? Like, what makes a network actually robust?\n\nMaya: Hmm. I mean, obviously you need multiple paths between nodes so if one breaks you have backups.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "Right, but I'm thinking bigger picture. Like, are there patterns in how information naturally spreads that we should be thinking about?",
+        "turn": 12
+      },
+      "interaction_types": [
+        "agreeing",
+        "deeper_exploration",
+        "diversive_curiosity"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 6,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 16,
+      "context": "Sam: Like, how long did it take you to see the email when the lab building had that hazmat closure?\n\nMaya: Actually no, my roommate told me. She saw it on someone's Instagram story before the official alert even came out.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "Ohh, cool. So there's this whole, like, informal network that's probably faster than anything official. Should we be trying to model that somehow?",
+        "turn": 16
+      },
+      "interaction_types": [
+        "interest",
+        "diversive_curiosity",
+        "explaining"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 7,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 17,
+      "context": "Maya: Actually no, my roommate told me. She saw it on someone's Instagram story before the official alert even came out.\n\nSam: Ohh, cool. So there's this whole, like, informal network that's probably faster than anything official. Should we be trying to model that somehow?",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "But we can't design a system that relies on social media. Is that reliable? What if people spread wrong information?",
+        "turn": 17
+      },
+      "interaction_types": [
+        "disagreeing",
+        "sustained_disagreement",
+        "diversive_curiosity"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 8,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 19,
+      "context": "Maya: But we can't design a system that relies on social media. Is that reliable? What if people spread wrong information?\n\nSam: I'm not saying rely on it, but what if we could work with it instead of ignoring it?",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "How would that even work though? You can't control what people post.",
+        "turn": 19
+      },
+      "interaction_types": [
+        "questioning",
+        "disagreeing"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 9,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 20,
+      "context": "Sam: I'm not saying rely on it, but what if we could work with it instead of ignoring it?\n\nMaya: How would that even work though? You can't control what people post.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "True, but maybe there are ways to make the official information more likely to spread? Like, what makes some information go viral while other stuff gets ignored?",
+        "turn": 20
+      },
+      "interaction_types": [
+        "agreeing",
+        "diversive_curiosity",
+        "epistemic_curiosity"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 10,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 21,
+      "context": "Maya: How would that even work though? You can't control what people post.\n\nSam: True, but maybe there are ways to make the official information more likely to spread? Like, what makes some information go viral while other stuff gets ignored?",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "I have no idea. That seems more like psychology than graph theory.",
+        "turn": 21
+      },
+      "interaction_types": [
+        "uncertainty",
+        "disagreeing"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 11,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 22,
+      "context": "Sam: True, but maybe there are ways to make the official information more likely to spread? Like, what makes some information go viral while other stuff gets ignored?\n\nMaya: I have no idea. That seems more like psychology than graph theory.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "Maybe, but networks are about how things spread, right? Whether it's diseases or information or whatever.",
+        "turn": 22
+      },
+      "interaction_types": [
+        "uncertainty",
+        "explaining",
+        "deeper_exploration"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 12,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 23,
+      "context": "Maya: I have no idea. That seems more like psychology than graph theory.\n\nSam: Maybe, but networks are about how things spread, right? Whether it's diseases or information or whatever.",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "I guess. But for this project, shouldn't we focus on things we can actually control and design?",
+        "turn": 23
+      },
+      "interaction_types": [
+        "uncertainty",
+        "agreeing",
+        "practical_focus"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 13,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 34,
+      "context": "Sam: But that's not our decision to make. We have to work with the system as it exists now.\n\nMaya: Yeah fair. So what percentage of students do you think actually get push notifications?",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "Maybe like 30%? And that's being generous.",
+        "turn": 34
+      },
+      "interaction_types": [
+        "uncertainty",
+        "explaining"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 14,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 35,
+      "context": "Maya: Fair point. So what percentage of students do you think actually get push notifications?\n\nSam: Maybe like 30%? And that's being generous.",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "That's not great. So we definitely can't rely on the app as a primary channel.",
+        "turn": 35
+      },
+      "interaction_types": [
+        "disagreeing",
+        "explaining"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 15,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 38,
+      "context": "Maya: Do they though? I know people who have like 10,000 unread emails.\n\nSam: Okay, texts then. Everyone responds to texts.",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "Not immediately though. And what about people who are in a dead zone, or they just have it on silent?",
+        "turn": 38
+      },
+      "interaction_types": [
+        "disagreeing",
+        "diversive_curiosity"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 16,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 39,
+      "context": "Maya: Do they though? I know people who have like 10,000 unread emails.\n\nMaya: Not immediately though. And what about people whose phones are dead, or they're in a dead zone, or they just have it on silent?",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "Ok, I mean, what are we supposed to do about that though, if they literally have no connection option.",
+        "turn": 39
+      },
+      "interaction_types": [
+        "interest",
+        "questioning"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 17,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 41,
+      "context": "Sam: Ok, I mean, what are we supposed to do about that though, if they literally have no connection option.\n\nMaya: Maybe that's why they have those super loud alarm systems in buildings.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "True, but those only work if you're inside. What about people walking around campus, or in outdoor areas?",
+        "turn": 41
+      },
+      "interaction_types": [
+        "agreeing",
+        "diversive_curiosity"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 18,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 43,
+      "context": "Sam: True, but those only work if you're inside. What about people walking around campus, or in outdoor areas?\n\nMaya: Those emergency call boxes maybe? Do those even work for broadcasting?",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "I have no idea. I've never seen anyone use one.",
+        "turn": 43
+      },
+      "interaction_types": [
+        "uncertainty"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 19,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 44,
+      "context": "Maya: Those emergency call boxes maybe? Do those even work for broadcasting?\n\nSam: I have no idea. I've never seen anyone use one.",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "Huh. I wonder what the actual statistics are on how people receive emergency information. Like, has anyone studied what works best?",
+        "turn": 44
+      },
+      "interaction_types": [
+        "open_ended_inquiry",
+        "diversive_curiosity",
+        "interest"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 20,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 45,
+      "context": "Sam: I have no idea. I've never seen anyone use one.\n\nMaya: Huh. I wonder what the actual statistics are on how people receive emergency information. Like, has anyone studied what works best?",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "That's a really good question. I bet there's research on that, but I don't know where to find it.",
+        "turn": 45
+      },
+      "interaction_types": [
+        "agreeing",
+        "uncertainty",
+        "interest"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 21,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 46,
+      "context": "Maya: Huh. I wonder what the actual statistics are on how people receive emergency information. Like, has anyone studied what works best?\n\nSam: That's a really good question. I bet there's research on that, but I don't know where to find it.",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "Me neither. Let's just make our best guess for now.",
+        "turn": 46
+      },
+      "interaction_types": [
+        "agreeing",
+        "uncertainty",
+        "practical_focus"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 22,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 50,
+      "context": "Maya: Independent how though? Like, physically separate systems?\n\nSam: Maybe. Or just systems that fail in different ways. Like if the internet goes down, we still have cellular. If cellular towers get damaged, we still have physical speakers.",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "That makes sense. So we're designing for different types of failures.",
+        "turn": 50
+      },
+      "interaction_types": [
+        "agreeing",
+        "explaining",
+        "practical_focus"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 23,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 51,
+      "context": "Sam: Maybe. Or just systems that fail in different ways. Like if the internet goes down, we still have cellular. If cellular towers get damaged, we still have physical speakers.\n\nMaya: That makes sense. So we're designing for different types of failures.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "Right. But I keep coming back to this question about informal networks. Like, even if all the official systems fail, information would still spread somehow, right?",
+        "turn": 51
+      },
+      "interaction_types": [
+        "agreeing",
+        "deeper_exploration",
+        "diversive_curiosity"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 24,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 53,
+      "context": "Sam: Right. But I keep coming back to this question about informal networks. Like, even if all the official systems fail, information would still spread somehow, right?\n\nMaya: Through word of mouth, sure. But that's not something we can design or control.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "But maybe we can influence it? Like, what if we made sure that certain key people always get the information first?",
+        "turn": 53
+      },
+      "interaction_types": [
+        "disagreeing",
+        "diversive_curiosity",
+        "building_ideas"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 25,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 56,
+      "context": "Sam: Yeah, or just people who are naturally well-connected. You know, those people who somehow know everyone.\n\nMaya: You mean like RAs or dorm leaders?",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "How would you even identify those people though? And what if they're not on campus when something happens?",
+        "turn": 56
+      },
+      "interaction_types": [
+        "specific_curiosity",
+        "diversive_curiosity"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 26,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 57,
+      "context": "Maya: You mean like RAs or student leaders?\n\nMaya: How would you even identify those people though? And what if they're not on campus when something happens?",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "I don't know. I'm just thinking about how information actually moves in real life versus how we think it should move.",
+        "turn": 57
+      },
+      "interaction_types": [
+        "uncertainty",
+        "deeper_exploration",
+        "interest"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 27,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 58,
+      "context": "Maya: How would you even identify those people though? And what if they're not on campus when something happens?\n\nSam: I don't know. I'm just thinking about how information actually moves in real life versus how we think it should move.",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "Okay but we need to draw an actual network diagram at some point. Like, we need to start somewhere.",
+        "turn": 58
+      },
+      "interaction_types": [
+        "practical_focus",
+        "disagreeing"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 28,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 62,
+      "context": "Maya: Yeah. So there might be multiple edges between the same two nodes if there are different ways they can communicate.\n\nSam: And edges are communication channels between those areas?",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "What about edge weights? Should they represent speed, reliability, or what?",
+        "turn": 62
+      },
+      "interaction_types": [
+        "specific_curiosity",
+        "practical_focus"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 29,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 63,
+      "context": "Sam: And edges are communication channels between those areas?\n\nSam: What about edge weights? Should they represent speed, reliability, or what?",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "Maybe a combination? Like, the probability that someone in area A successfully receives a message sent from area B within a certain time frame.",
+        "turn": 63
+      },
+      "interaction_types": [
+        "uncertainty",
+        "explaining",
+        "practical_focus"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 30,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 64,
+      "context": "Sam: What about edge weights? Should they represent speed, reliability, or what?\n\nMaya: Maybe a combination? Like, the probability that someone in area A successfully receives a message sent from area B within a certain time frame.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "Ok, maybe. How would we even calculate that?",
+        "turn": 64
+      },
+      "interaction_types": [
+        "specific_curiosity",
+        "questioning"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 31,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 66,
+      "context": "Sam: Ok, maybe. How would we even calculate that?\n\nMaya: We'd have to estimate based on things like building occupancy, communication method reliability, stuff like that.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "This is getting complicated. Do you think we're overthinking it?",
+        "turn": 66
+      },
+      "interaction_types": [
+        "uncertainty",
+        "questioning"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 32,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 67,
+      "context": "Maya: We'd have to estimate based on things like building occupancy, communication method reliability, stuff like that.\n\nSam: This is getting complicated. Do you think we're overthinking it?",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "Probably. But I kind of like thinking about how this would work in reality. It's more interesting than just drawing a generic network.",
+        "turn": 67
+      },
+      "interaction_types": [
+        "uncertainty",
+        "agreeing",
+        "interest",
+        "deeper_exploration"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 33,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 68,
+      "context": "Sam: This is getting complicated. Do you think we're overthinking it?\n\nMaya: Probably. But I kind of like thinking about how this would work in reality. It's more interesting than just drawing a generic network.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "Same. Like, I never really thought about how emergency systems actually function before this project.",
+        "turn": 68
+      },
+      "interaction_types": [
+        "agreeing",
+        "interest",
+        "deeper_exploration"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 34,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 69,
+      "context": "Maya: Probably. But I kind of like thinking about how this would work in reality. It's more interesting than just drawing a generic network.\n\nSam: Same. Like, I never really thought about how emergency systems actually function before.",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "Right? I feel like I just assume these things always work without really thinking about it.",
+        "turn": 69
+      },
+      "interaction_types": [
+        "agreeing",
+        "interest",
+        "deeper_exploration"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 35,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 71,
+      "context": "Sam: Same. Like, I never really thought about how emergency systems actually function before this project.\n\nMaya: Right? I feel like I just assume these things always work without really thinking about it.",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "So that brings us back to the redundancy question. How much backup do we actually need?",
+        "turn": 71
+      },
+      "interaction_types": [
+        "building_ideas",
+        "open_ended_inquiry"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 36,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 72,
+      "context": "Maya: Right? I feel like I just assume these things always work without really thinking about it.\n\nMaya: So that brings us back to the redundancy question. How much backup do we actually need?",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "I think it depends on what level of failure we're designing for. Like, normal equipment failure versus natural disaster versus something more serious.",
+        "turn": 72
+      },
+      "interaction_types": [
+        "explaining",
+        "building_ideas",
+        "practical_focus"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 37,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 75,
+      "context": "Sam: I think it depends on what level of failure we're designing for. Like, normal equipment failure versus natural disaster versus something more serious.\n\nMaya: The project doesn't specify, but I assume we're not planning for like, total societal collapse.",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "So realistically... what? Weather emergencies, security threats, maybe building evacuations?",
+        "turn": 75
+      },
+      "interaction_types": [
+        "open_ended_inquiry",
+        "building_ideas"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 38,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 77,
+      "context": "Maya: So realistically... what? Weather emergencies, security threats, maybe building evacuations?\n\nSam: Chemical spills, medical emergencies, power outages...",
+      "focus_turn": {
+        "speaker": "Maya",
+        "text": "Do different types of emergencies need different communication strategies?",
+        "turn": 77
+      },
+      "interaction_types": [
+        "open_ended_inquiry",
+        "diversive_curiosity"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 39,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 78,
+      "context": "Sam: Chemical spills, medical emergencies, power outages...\n\nMaya: Do different types of emergencies need different communication strategies?",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "Oh hm, that's a good question. Like, for a building evacuation, you mainly need to reach people in that specific building quickly. But for a whole campus situation, you need to reach everyone.",
+        "turn": 78
+      },
+      "interaction_types": [
+        "agreeing",
+        "explaining",
+        "building_ideas"
+      ],
+      "cleaning_applied": false
+    },
+    {
+      "id": 40,
+      "conversation_id": "crisis_communication_graph_theory",
+      "turn_number": 80,
+      "context": "Sam: That's a really good question. Like, for a building evacuation, you mainly need to reach people in that specific building quickly. But for a whole campus situation, you need to reach everyone.\n\nMaya: And for weather emergencies, you might have more time but also less information, like, not sure what will actually happen.",
+      "focus_turn": {
+        "speaker": "Sam",
+        "text": "So maybe we need to design a flexible system that can adapt to different scenarios?",
+        "turn": 80
+      },
+      "interaction_types": [
+        "diversive_curiosity",
+        "building_ideas"
+      ],
+      "cleaning_applied": false
+    }
+  ]
+}

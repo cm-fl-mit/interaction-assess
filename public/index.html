@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation Analysis Validation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .progress {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .slice-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .context {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-style: italic;
+            margin-bottom: 15px;
+            border-left: 4px solid #ccc;
+        }
+
+        .focus-segment {
+            background-color: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .speaker {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .question-container {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .interaction-type {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .interaction-type label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .interaction-type input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .confidence-slider {
+            margin: 10px 0 10px 30px;
+            display: none;
+        }
+
+        .confidence-slider.visible {
+            display: block;
+        }
+
+        .confidence-options {
+            display: flex;
+            gap: 15px;
+            margin: 10px 0;
+            align-items: center;
+        }
+
+        .confidence-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .confidence-option input[type="radio"] {
+            margin: 0;
+            transform: scale(1.1);
+        }
+
+        .confidence-option label {
+            font-size: 14px;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+            width: 200px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .completion-screen {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .completion-code {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 15px;
+            background-color: #e8f5e8;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: inline-block;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        #training-screen {
+            display: none !important;
+            visibility: hidden !important;
+            position: absolute !important;
+            left: -9999px !important;
+            top: -9999px !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        #training-screen.show {
+            display: block !important;
+            visibility: visible !important;
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            height: auto !important;
+            overflow: visible !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="loading-screen" class="loading" style="display: none;">
+            <h2>Loading...</h2>
+            <p>Please wait while we prepare your annotation tasks.</p>
+        </div>
+
+        <div id="introduction-screen" style="display: none;">
+            <div style="max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6;">
+                <h1 style="text-align: center; color: #333; margin-bottom: 30px;">Conversation Analysis Study</h1>
+                
+                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #007bff;">
+                    <h2 style="color: #007bff; margin-top: 0;">Instructions</h2>
+                    <p>You'll be analyzing 15 short slices of conversation to identify different types of curiosity and interaction patterns. For each section:</p>
+                    <ul style="margin: 15px 0; padding-left: 25px;">
+                        <li><strong>Read the conversation segment carefully</strong></li>
+                        <li><strong>Identify interaction types</strong> (agreeing, disagreeing, explaining, questioning, uncertainty)</li>
+                        <li><strong>Determine if curiosity is present</strong></li>
+                        <li><strong>If present, identify the type and intensity of curiosity</strong></li>
+                        <li><strong>Set your confidence level</strong> for each selection</li>
+                    </ul>
+                    <p><strong>Thank you for providing thoughtful responses. Your careful analysis is important to our research.</strong></p>
+                </div>
+
+                <div style="background-color: #fff3cd; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #ffc107;">
+                    <h2 style="color: #856404; margin-top: 0;">Curiosity Types</h2>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #856404; margin-bottom: 10px;">Specific Curiosity:</h3>
+                        <p style="margin-bottom: 8px;">Targeted questions seeking direct answers to close a specific knowledge gap</p>
+                        <p style="font-style: italic; color: #666;"><strong>Examples:</strong> "What is this called?", "Who invented it?", "When did it happen?"</p>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #856404; margin-bottom: 10px;">Diversive Curiosity:</h3>
+                        <p style="margin-bottom: 8px;">Broad exploration of new topics, stimulated by novelty or variety</p>
+                        <p style="font-style: italic; color: #666;"><strong>Examples:</strong> "I wonder what else we could try", "What if we...", "Let's explore..."</p>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #856404; margin-bottom: 10px;">Epistemic Curiosity:</h3>
+                        <p style="margin-bottom: 8px;">Deep engagement with existing knowledge, seeking understanding of concepts or causes</p>
+                        <p style="font-style: italic; color: #666;"><strong>Examples:</strong> "Why does this happen?", "How does it work?", "What's the theory behind this?"</p>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #856404; margin-bottom: 10px;">Social Curiosity:</h3>
+                        <p style="margin-bottom: 8px;">Interest in others' thoughts, feelings, or perspectives</p>
+                        <p style="font-style: italic; color: #666;"><strong>Examples:</strong> "What do you think?", "How would you approach this?", "What's your perspective?"</p>
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <button onclick="startTraining()" style="background-color: #007bff; color: white; border: none; padding: 15px 30px; font-size: 16px; border-radius: 5px; cursor: pointer;">
+                        Continue to Training
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="training-screen" style="display: none;">
+            <!-- Training content will be loaded dynamically -->
+        </div>
+        
+        <!-- Hidden training template -->
+        <template id="training-template">
+            <h2>Training Example - Practice Annotation</h2>
+            <div class="info-box" style="background-color: #e8f4f8; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196F3;">
+                <h3>Instructions:</h3>
+                <ul style="text-align: left; margin: 10px 0;">
+                    <li><strong>Focus only on the highlighted conversation turn</strong> - ignore the context when making your ratings</li>
+                    <li><strong>Select all interaction types</strong> you observe in the focus turn</li>
+                    <li><strong>Set confidence levels</strong> for each type you select (Low/Medium/High)</li>
+                    <li><strong>Look for curiosity indicators</strong> if present</li>
+                    <li>This is practice - your response won't be recorded</li>
+                </ul>
+            </div>
+
+            <div class="slice-container">
+                <h3>Context (previous conversation):</h3>
+                <div class="context">
+                    <span class="speaker">Maya:</span> No way. That doesn't make sense from a design perspective. You always need one primary source of truth for emergency information. You can't just have chaos with multiple competing sources.<br><br>
+                    <span class="speaker">Sam:</span> But that's exactly the problem with centralized systems! What if there's a power outage in that building, or the person in charge isn't there, or the system goes down?
+                </div>
+
+                <h3>Rate this conversation turn:</h3>
+                <div class="focus-segment">
+                    <span class="speaker">Maya:</span> "Okay, fine, but then how do you coordinate multiple sources without creating confusion? Like what if different hubs send out conflicting information?"
+                </div>
+            </div>
+
+                <div class="training-hints" style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+                    <h4>What to look for in this example:</h4>
+                    <p><strong>QUESTIONING:</strong> "how do you coordinate...?" and "what if different hubs...?" - Maya is asking direct questions</p>
+                    <p><strong>AGREEING:</strong> "Okay, fine..." - Maya concedes Sam's point before asking follow-up questions</p>
+                    <p><strong>DIVERSIVE CURIOSITY:</strong> "Like what if..." - Maya explores potential scenarios and complications</p>
+                </div>
+            </div>
+
+            <div id="trainingQuestionContainer" class="question-container">
+                <h3>Interaction Types</h3>
+                <p><em>Select all that apply to the highlighted conversation turn:</em></p>
+
+                <div class="interaction-type">
+                    <label>
+                        <input type="checkbox" name="training-interaction" value="agreeing">
+                        <strong>Agreeing</strong> - Expressing agreement, acceptance, or alignment
+                    </label>
+                    <div class="confidence-slider" data-type="agreeing">
+                        <label>Confidence:</label>
+                        <div class="confidence-options">
+                            <div class="confidence-option">
+                                <input type="radio" id="training-agreeing-low" name="training-agreeing-confidence" value="low">
+                                <label for="training-agreeing-low">Low</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-agreeing-medium" name="training-agreeing-confidence" value="medium" checked>
+                                <label for="training-agreeing-medium">Medium</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-agreeing-high" name="training-agreeing-confidence" value="high">
+                                <label for="training-agreeing-high">High</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interaction-type">
+                    <label>
+                        <input type="checkbox" name="training-interaction" value="disagreeing">
+                        <strong>Disagreeing</strong> - Expressing disagreement, opposition, or alternative views
+                    </label>
+                    <div class="confidence-slider" data-type="disagreeing">
+                        <label>Confidence:</label>
+                        <div class="confidence-options">
+                            <div class="confidence-option">
+                                <input type="radio" id="training-disagreeing-low" name="training-disagreeing-confidence" value="low">
+                                <label for="training-disagreeing-low">Low</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-disagreeing-medium" name="training-disagreeing-confidence" value="medium" checked>
+                                <label for="training-disagreeing-medium">Medium</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-disagreeing-high" name="training-disagreeing-confidence" value="high">
+                                <label for="training-disagreeing-high">High</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interaction-type">
+                    <label>
+                        <input type="checkbox" name="training-interaction" value="explaining">
+                        <strong>Explaining</strong> - Providing clarification, elaboration, or reasoning
+                    </label>
+                    <div class="confidence-slider" data-type="explaining">
+                        <label>Confidence:</label>
+                        <div class="confidence-options">
+                            <div class="confidence-option">
+                                <input type="radio" id="training-explaining-low" name="training-explaining-confidence" value="low">
+                                <label for="training-explaining-low">Low</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-explaining-medium" name="training-explaining-confidence" value="medium" checked>
+                                <label for="training-explaining-medium">Medium</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-explaining-high" name="training-explaining-confidence" value="high">
+                                <label for="training-explaining-high">High</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interaction-type">
+                    <label>
+                        <input type="checkbox" name="training-interaction" value="questioning">
+                        <strong>Questioning</strong> - Asking questions or seeking information
+                    </label>
+                    <div class="confidence-slider" data-type="questioning">
+                        <label>Confidence:</label>
+                        <div class="confidence-options">
+                            <div class="confidence-option">
+                                <input type="radio" id="training-questioning-low" name="training-questioning-confidence" value="low">
+                                <label for="training-questioning-low">Low</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-questioning-medium" name="training-questioning-confidence" value="medium" checked>
+                                <label for="training-questioning-medium">Medium</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-questioning-high" name="training-questioning-confidence" value="high">
+                                <label for="training-questioning-high">High</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interaction-type">
+                    <label>
+                        <input type="checkbox" name="training-interaction" value="uncertainty">
+                        <strong>Uncertainty</strong> - Expressing doubt, confusion, or lack of clarity
+                    </label>
+                    <div class="confidence-slider" data-type="uncertainty">
+                        <label>Confidence:</label>
+                        <div class="confidence-options">
+                            <div class="confidence-option">
+                                <input type="radio" id="training-uncertainty-low" name="training-uncertainty-confidence" value="low">
+                                <label for="training-uncertainty-low">Low</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-uncertainty-medium" name="training-uncertainty-confidence" value="medium" checked>
+                                <label for="training-uncertainty-medium">Medium</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-uncertainty-high" name="training-uncertainty-confidence" value="high">
+                                <label for="training-uncertainty-high">High</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px;">Curiosity Types (if present)</h3>
+                <p><em>Select any curiosity behaviors you observe:</em></p>
+
+                <div class="interaction-type">
+                    <label>
+                        <input type="checkbox" name="training-curiosity" value="diversive">
+                        <strong>Diversive</strong> - Exploring multiple possibilities or alternative scenarios
+                    </label>
+                    <div class="confidence-slider" data-type="diversive">
+                        <label>Confidence:</label>
+                        <div class="confidence-options">
+                            <div class="confidence-option">
+                                <input type="radio" id="training-diversive-low" name="training-diversive-confidence" value="low">
+                                <label for="training-diversive-low">Low</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-diversive-medium" name="training-diversive-confidence" value="medium" checked>
+                                <label for="training-diversive-medium">Medium</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-diversive-high" name="training-diversive-confidence" value="high">
+                                <label for="training-diversive-high">High</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interaction-type">
+                    <label>
+                        <input type="checkbox" name="training-curiosity" value="specific">
+                        <strong>Specific</strong> - Seeking targeted information or details
+                    </label>
+                    <div class="confidence-slider" data-type="specific">
+                        <label>Confidence:</label>
+                        <div class="confidence-options">
+                            <div class="confidence-option">
+                                <input type="radio" id="training-specific-low" name="training-specific-confidence" value="low">
+                                <label for="training-specific-low">Low</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-specific-medium" name="training-specific-confidence" value="medium" checked>
+                                <label for="training-specific-medium">Medium</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-specific-high" name="training-specific-confidence" value="high">
+                                <label for="training-specific-high">High</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interaction-type">
+                    <label>
+                        <input type="checkbox" name="training-curiosity" value="epistemic">
+                        <strong>Epistemic</strong> - Seeking understanding or deeper connection to ideas
+                    </label>
+                    <div class="confidence-slider" data-type="epistemic">
+                        <label>Confidence:</label>
+                        <div class="confidence-options">
+                            <div class="confidence-option">
+                                <input type="radio" id="training-epistemic-low" name="training-epistemic-confidence" value="low">
+                                <label for="training-epistemic-low">Low</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-epistemic-medium" name="training-epistemic-confidence" value="medium" checked>
+                                <label for="training-epistemic-medium">Medium</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-epistemic-high" name="training-epistemic-confidence" value="high">
+                                <label for="training-epistemic-high">High</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interaction-type">
+                    <label>
+                        <input type="checkbox" name="training-curiosity" value="social">
+                        <strong>Social</strong> - Interest in the other's perspective or experience
+                    </label>
+                    <div class="confidence-slider" data-type="social">
+                        <label>Confidence:</label>
+                        <div class="confidence-options">
+                            <div class="confidence-option">
+                                <input type="radio" id="training-social-low" name="training-social-confidence" value="low">
+                                <label for="training-social-low">Low</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-social-medium" name="training-social-confidence" value="medium" checked>
+                                <label for="training-social-medium">Medium</label>
+                            </div>
+                            <div class="confidence-option">
+                                <input type="radio" id="training-social-high" name="training-social-confidence" value="high">
+                                <label for="training-social-high">High</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="trainingButton" onclick="completeTraining()">Complete Training & Start Real Annotations</button>
+        </template>
+    </div>
+
+    <script>
+        // Global variables
+        let participantId = null;
+        let slices = [];
+        let currentSliceIndex = 0;
+        let responses = [];
+        let startTime = Date.now();
+        let hasShownTrainingNotice = false;
+
+        // Get Prolific ID from URL parameters
+        function getParticipantId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('PROLIFIC_PID') || 'TEST_' + Math.random().toString(36).substring(2, 8);
+        }
+
+        // Initialize the application
+
+        // Render the main annotation interface
+        function renderAnnotationInterface() {
+            // Reset scroll position to top when rendering new interface
+            window.scrollTo(0, 0);
+            
+            // Only show training completion notice once on the very first real annotation
+            const realDataNotice = (!hasShownTrainingNotice && !isTrainingMode) ? 
+                '<p id="training-completion-notice" style="color: #666; font-style: italic; margin-bottom: 20px; text-align: center;">Training completed. Real data collection begins.</p>' : 
+                '';
+            
+            // Mark that we've shown the notice
+            if (!isTrainingMode && !hasShownTrainingNotice) {
+                hasShownTrainingNotice = true;
+            }
+            
+            document.getElementById('app').innerHTML = `
+                <h1>Conversation Analysis Study</h1>
+                ${realDataNotice}
+                
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+                </div>
+
+                <div id="sliceContainer" class="slice-container">
+                    <!-- Slice content will be loaded here -->
+                </div>
+
+                <div id="questionContainer" class="question-container">
+                    <h3>Which interaction types are present in this conversation segment?</h3>
+                    <p>Select all that apply and set your confidence level for each selection.</p>
+
+                    <div class="interaction-type">
+                        <label>
+                            <input type="checkbox" name="interaction" value="agreeing">
+                            <strong>Agreeing</strong> - Expressing agreement, acceptance, or alignment
+                        </label>
+                        <div class="confidence-slider" data-type="agreeing">
+                            <label>Confidence:</label>
+                            <div class="confidence-options">
+                                <div class="confidence-option">
+                                    <input type="radio" id="agreeing-low" name="agreeing-confidence" value="low">
+                                    <label for="agreeing-low">Low</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="agreeing-medium" name="agreeing-confidence" value="medium" checked>
+                                    <label for="agreeing-medium">Medium</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="agreeing-high" name="agreeing-confidence" value="high">
+                                    <label for="agreeing-high">High</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interaction-type">
+                        <label>
+                            <input type="checkbox" name="interaction" value="disagreeing">
+                            <strong>Disagreeing</strong> - Expressing disagreement, opposition, or alternative views
+                        </label>
+                        <div class="confidence-slider" data-type="disagreeing">
+                            <label>Confidence:</label>
+                            <div class="confidence-options">
+                                <div class="confidence-option">
+                                    <input type="radio" id="disagreeing-low" name="disagreeing-confidence" value="low">
+                                    <label for="disagreeing-low">Low</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="disagreeing-medium" name="disagreeing-confidence" value="medium" checked>
+                                    <label for="disagreeing-medium">Medium</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="disagreeing-high" name="disagreeing-confidence" value="high">
+                                    <label for="disagreeing-high">High</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interaction-type">
+                        <label>
+                            <input type="checkbox" name="interaction" value="explaining">
+                            <strong>Explaining</strong> - Providing explanations, reasoning, or clarification
+                        </label>
+                        <div class="confidence-slider" data-type="explaining">
+                            <label>Confidence:</label>
+                            <div class="confidence-options">
+                                <div class="confidence-option">
+                                    <input type="radio" id="explaining-low" name="explaining-confidence" value="low">
+                                    <label for="explaining-low">Low</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="explaining-medium" name="explaining-confidence" value="medium" checked>
+                                    <label for="explaining-medium">Medium</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="explaining-high" name="explaining-confidence" value="high">
+                                    <label for="explaining-high">High</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interaction-type">
+                        <label>
+                            <input type="checkbox" name="interaction" value="questioning">
+                            <strong>Questioning</strong> - Asking questions or seeking information
+                        </label>
+                        <div class="confidence-slider" data-type="questioning">
+                            <label>Confidence:</label>
+                            <div class="confidence-options">
+                                <div class="confidence-option">
+                                    <input type="radio" id="questioning-low" name="questioning-confidence" value="low">
+                                    <label for="questioning-low">Low</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="questioning-medium" name="questioning-confidence" value="medium" checked>
+                                    <label for="questioning-medium">Medium</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="questioning-high" name="questioning-confidence" value="high">
+                                    <label for="questioning-high">High</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interaction-type">
+                        <label>
+                            <input type="checkbox" name="interaction" value="uncertainty">
+                            <strong>Uncertainty</strong> - Expressing doubt, confusion, or lack of clarity
+                        </label>
+                        <div class="confidence-slider" data-type="uncertainty">
+                            <label>Confidence:</label>
+                            <div class="confidence-options">
+                                <div class="confidence-option">
+                                    <input type="radio" id="uncertainty-low" name="uncertainty-confidence" value="low">
+                                    <label for="uncertainty-low">Low</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="uncertainty-medium" name="uncertainty-confidence" value="medium" checked>
+                                    <label for="uncertainty-medium">Medium</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="uncertainty-high" name="uncertainty-confidence" value="high">
+                                    <label for="uncertainty-high">High</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Curiosity Types (if present)</h3>
+                    <p>If you detect curiosity in this segment, select the relevant types:</p>
+
+                    <div class="interaction-type">
+                        <label>
+                            <input type="checkbox" name="curiosity" value="diversive">
+                            <strong>Diversive Curiosity</strong> - Broad exploration of new topics or possibilities
+                        </label>
+                        <div class="confidence-slider" data-type="diversive">
+                            <label>Confidence:</label>
+                            <div class="confidence-options">
+                                <div class="confidence-option">
+                                    <input type="radio" id="diversive-low" name="diversive-confidence" value="low">
+                                    <label for="diversive-low">Low</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="diversive-medium" name="diversive-confidence" value="medium" checked>
+                                    <label for="diversive-medium">Medium</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="diversive-high" name="diversive-confidence" value="high">
+                                    <label for="diversive-high">High</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interaction-type">
+                        <label>
+                            <input type="checkbox" name="curiosity" value="specific">
+                            <strong>Specific Curiosity</strong> - Targeted questions seeking direct answers
+                        </label>
+                        <div class="confidence-slider" data-type="specific">
+                            <label>Confidence:</label>
+                            <div class="confidence-options">
+                                <div class="confidence-option">
+                                    <input type="radio" id="specific-low" name="specific-confidence" value="low">
+                                    <label for="specific-low">Low</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="specific-medium" name="specific-confidence" value="medium" checked>
+                                    <label for="specific-medium">Medium</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="specific-high" name="specific-confidence" value="high">
+                                    <label for="specific-high">High</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interaction-type">
+                        <label>
+                            <input type="checkbox" name="curiosity" value="epistemic">
+                            <strong>Epistemic Curiosity</strong> - Seeking understanding or deeper connection to ideas
+                        </label>
+                        <div class="confidence-slider" data-type="epistemic">
+                            <label>Confidence:</label>
+                            <div class="confidence-options">
+                                <div class="confidence-option">
+                                    <input type="radio" id="epistemic-low" name="epistemic-confidence" value="low">
+                                    <label for="epistemic-low">Low</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="epistemic-medium" name="epistemic-confidence" value="medium" checked>
+                                    <label for="epistemic-medium">Medium</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="epistemic-high" name="epistemic-confidence" value="high">
+                                    <label for="epistemic-high">High</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interaction-type">
+                        <label>
+                            <input type="checkbox" name="curiosity" value="social">
+                            <strong>Social Curiosity</strong> - Interest in the other's perspective or experience
+                        </label>
+                        <div class="confidence-slider" data-type="social">
+                            <label>Confidence:</label>
+                            <div class="confidence-options">
+                                <div class="confidence-option">
+                                    <input type="radio" id="social-low" name="social-confidence" value="low">
+                                    <label for="social-low">Low</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="social-medium" name="social-confidence" value="medium" checked>
+                                    <label for="social-medium">Medium</label>
+                                </div>
+                                <div class="confidence-option">
+                                    <input type="radio" id="social-high" name="social-confidence" value="high">
+                                    <label for="social-high">High</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="nextButton" onclick="submitAndNext()">Submit & Continue</button>
+                </div>
+            `;
+
+            // Add event listeners
+            setupEventListeners();
+        }
+
+        // Set up event listeners for checkboxes and sliders
+        function setupEventListeners() {
+            // Checkbox event listeners
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const sliderContainer = document.querySelector(`.confidence-slider[data-type="${this.value}"]`);
+                    if (sliderContainer) {
+                        sliderContainer.classList.toggle('visible', this.checked);
+                    }
+                });
+            });
+
+            // No need for confidence change listeners with radio buttons
+        }
+
+        // Load and display a specific slice
+        function loadSlice(index) {
+            // Reset scroll position to top of page
+            window.scrollTo(0, 0);
+            
+            // Remove training completion notice after first slice
+            if (index > 0) {
+                const trainingNotice = document.getElementById('training-completion-notice');
+                if (trainingNotice) {
+                    trainingNotice.remove();
+                }
+            }
+            
+            if (index >= slices.length) {
+                showCompletionScreen();
+                return;
+            }
+
+            const slice = slices[index];
+            
+            // Update progress bar
+            const progress = ((index + 1) / slices.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+
+            // Display slice content
+            let html = '';
+            
+            if (slice.context && slice.context !== "None (start of recorded conversation)") {
+                html += `<div class="context">
+                    <strong>CONTEXT:</strong><br>
+                    ${formatConversationText(slice.context)}
+                </div>`;
+            }
+
+            html += `<div class="focus-segment">
+                <strong>ANNOTATE THIS SEGMENT:</strong><br>
+                ${formatConversationTurns(slice.focus_turns)}
+            </div>`;
+
+            document.getElementById('sliceContainer').innerHTML = html;
+
+            // Reset form
+            resetForm();
+            startTime = Date.now();
+        }
+
+        // Format conversation text with speaker highlighting
+        function formatConversationText(text) {
+            return text.split('\n\n').map(turn => {
+                const colonIndex = turn.indexOf(':');
+                if (colonIndex > 0) {
+                    const speaker = turn.substring(0, colonIndex);
+                    const utterance = turn.substring(colonIndex + 1);
+                    return `<span class="speaker">${speaker}:</span>${utterance}`;
+                }
+                return turn;
+            }).join('<br><br>');
+        }
+
+        // Format conversation turns from structured data
+        function formatConversationTurns(turns) {
+            if (!Array.isArray(turns)) {
+                return 'No conversation data available';
+            }
+
+            return turns.map(turn => 
+                `<span class="speaker">${turn.speaker}:</span> ${turn.text}`
+            ).join('<br><br>');
+        }
+
+        // Reset form for new slice
+        function resetForm() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.confidence-slider').forEach(slider => {
+                slider.classList.remove('visible');
+            });
+            // Reset all confidence radio buttons to medium
+            document.querySelectorAll('input[type="radio"][value="medium"]').forEach(radio => {
+                radio.checked = true;
+            });
+        }
+
+        // Submit annotation and move to next slice
+        async function submitAndNext() {
+            const annotationTime = Math.floor((Date.now() - startTime) / 1000);
+            
+            // Convert categorical confidence to numeric for storage
+            function confidenceToNumeric(categorical) {
+                const mapping = {
+                    'low': 0.375,     // 37.5% (middle of 25-50%)
+                    'medium': 0.625,  // 62.5% (middle of 50-75%)
+                    'high': 0.875     // 87.5% (middle of 75-100%)
+                };
+                return mapping[categorical] || 0.625; // Default to medium
+            }
+
+            // Collect interaction types
+            const interactionTypes = [];
+            document.querySelectorAll('input[name="interaction"]:checked').forEach(cb => {
+                const confidenceRadio = document.querySelector(`input[name="${cb.value}-confidence"]:checked`);
+                const categorical = confidenceRadio ? confidenceRadio.value : 'medium';
+                
+                interactionTypes.push({
+                    type: cb.value,
+                    confidence: confidenceToNumeric(categorical),
+                    categorical: categorical
+                });
+            });
+
+            // Collect curiosity types
+            const curiosityTypes = [];
+            document.querySelectorAll('input[name="curiosity"]:checked').forEach(cb => {
+                const confidenceRadio = document.querySelector(`input[name="${cb.value}-confidence"]:checked`);
+                const categorical = confidenceRadio ? confidenceRadio.value : 'medium';
+                
+                curiosityTypes.push({
+                    type: cb.value,
+                    confidence: confidenceToNumeric(categorical),
+                    categorical: categorical
+                });
+            });
+
+            const annotation = {
+                participant_id: participantId,
+                slice_id: slices[currentSliceIndex].id,
+                interaction_types: interactionTypes,
+                curiosity_types: curiosityTypes,
+                routing_validation: {}, // Could add routing validation here if needed
+                annotation_time_seconds: annotationTime
+            };
+
+            try {
+                // Submit to server
+                const response = await fetch('/api/annotations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(annotation)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Store locally as backup
+                responses.push(annotation);
+
+                // Move to next slice
+                currentSliceIndex++;
+                loadSlice(currentSliceIndex);
+
+            } catch (error) {
+                console.error('Error submitting annotation:', error);
+                alert('There was an error submitting your response. Please try again.');
+            }
+        }
+
+        // Show completion screen
+        function showCompletionScreen() {
+            // Reset scroll position to top of page
+            window.scrollTo(0, 0);
+            
+            const completionCode = generateCompletionCode();
+            
+            document.getElementById('app').innerHTML = `
+                <div class="completion-screen" style="display: block;">
+                    <h2>Thank you for completing the study!</h2>
+                    <p>You have successfully annotated ${slices.length} conversation segments.</p>
+                    <p>Your completion code is:</p>
+                    <div class="completion-code">${completionCode}</div>
+                    <p>Please copy this code and paste it back into Prolific to receive credit for this study.</p>
+                    <p><small>Your responses have been automatically saved.</small></p>
+                </div>
+            `;
+        }
+
+        // Generate completion code
+        function generateCompletionCode() {
+            return 'C1HAZGAN';
+        }
+
+        // Training functions
+        let isTrainingMode = true;
+        
+        function setupTrainingEventListeners() {
+            // Set up training interaction type checkboxes to show confidence sliders
+            document.querySelectorAll('input[name="training-interaction"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const sliderContainer = document.querySelector(`#trainingQuestionContainer .confidence-slider[data-type="${this.value}"]`);
+                    if (sliderContainer) {
+                        if (this.checked) {
+                            sliderContainer.classList.add('visible');
+                        } else {
+                            sliderContainer.classList.remove('visible');
+                        }
+                    }
+                });
+            });
+
+            // Set up training curiosity type checkboxes to show confidence sliders
+            document.querySelectorAll('input[name="training-curiosity"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const sliderContainer = document.querySelector(`#trainingQuestionContainer .confidence-slider[data-type="${this.value}"]`);
+                    if (sliderContainer) {
+                        if (this.checked) {
+                            sliderContainer.classList.add('visible');
+                        } else {
+                            sliderContainer.classList.remove('visible');
+                        }
+                    }
+                });
+            });
+        }
+
+        function startTraining() {
+            // Reset scroll position to top of page
+            window.scrollTo(0, 0);
+            
+            // Load training content from template
+            const trainingTemplate = document.getElementById('training-template');
+            const trainingScreen = document.getElementById('training-screen');
+            trainingScreen.innerHTML = trainingTemplate.innerHTML;
+            
+            // Hide introduction screen and show training screen
+            document.getElementById('introduction-screen').style.display = 'none';
+            trainingScreen.classList.add('show');
+            
+            // Set up training event listeners
+            setupTrainingEventListeners();
+        }
+
+        function completeTraining() {
+            // Training completed, transition to real annotations
+            isTrainingMode = false;
+            
+            // Load real participant data which will render the full annotation interface
+            loadParticipantData();
+        }
+
+        async function loadParticipantData() {
+            // Reset scroll position to top of page for training completion
+            window.scrollTo(0, 0);
+            
+            try {
+                // Load assigned slices for this participant
+                const response = await fetch(`/api/participant/${participantId}/slices`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                slices = data.slices;
+
+                console.log(`Loaded ${slices.length} slices for annotation`);
+
+                // Start annotation interface
+                renderAnnotationInterface();
+                loadSlice(currentSliceIndex);
+
+            } catch (error) {
+                console.error('Error loading participant data:', error);
+                document.getElementById('app').innerHTML = `
+                    <div style="text-align: center; color: red; padding: 20px;">
+                        <h3>Error Loading Study</h3>
+                        <p>There was an error loading your assigned conversation segments.</p>
+                        <p>Please refresh the page or contact the researchers.</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Modified initialize function to show introduction first
+        async function initializeApp() {
+            participantId = getParticipantId();
+            console.log('Participant ID:', participantId);
+
+            // Show introduction screen first
+            document.getElementById('introduction-screen').style.display = 'block';
+        }
+
+        // Initialize the app when page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
